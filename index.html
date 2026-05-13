@@ -212,6 +212,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .bus-sel-btn{flex:1;height:36px;font-size:12px;font-weight:600;border:1px solid var(--border);
   border-radius:var(--rs);background:var(--surface);color:var(--text2);cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:all .15s;}
 
+
+/* PIN modal */
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:background .15s,border-color .15s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);}
+.pin-key{padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);
+  font-family:-apple-system,sans-serif;font-size:20px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s;}
+.pin-key:active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pin-clear{color:var(--red);font-size:16px;}
+.pin-back{font-size:16px;}
+
 /* Mobile */
 @media(max-width:480px){
   #hdr{padding:6px 10px;gap:7px;}
@@ -235,6 +245,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   .section-hdr{font-size:8px;}
 }
 </style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -254,6 +267,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <span>⚙️</span><span style="font-size:11px;">Instellingen</span>
   </button>
   <button class="mode-btn" id="mode-btn" onclick="toggleMode()">🌙</button>
+</div>
+<div id="sync-bar" style="display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:11px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;">
+  <span id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .3s;"></span>
+  <span id="sync-label" style="color:var(--text2);">Verbinding instellen…</span>
+  <span id="master-badge" style="display:none;margin-left:auto;background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.08em;">BEHEERDER</span>
 </div>
 <div id="render-error" style="display:none;background:#dc2626;color:#fff;padding:8px 14px;font-size:12px;font-weight:700;"></div>
 
@@ -848,7 +866,15 @@ function shareWhatsApp(){
 }
 
 // ── Tick / timestamp ──────────────────────────────────────────────────────
-function tickCP(i){openTsModal(i);}
+function tickCP(i){
+  if(!isMaster){
+    // Show a brief hint for non-master users
+    const bar = document.getElementById('sync-label');
+    if(bar){ const old=bar.textContent; bar.textContent='Houd het logo 1,5 sec ingedrukt om beheerder te worden'; setTimeout(()=>bar.textContent=old, 2500); }
+    return;
+  }
+  openTsModal(i);
+}
 
 function openTsModal(i){
   tsPending=i;
@@ -928,17 +954,21 @@ function applyDerivedPace(){
 
 function confirmTick(){
   if(tsPending===null)return;
+  if(!isMaster){ closeTsModal(); return; }
   const[h,m]=document.getElementById('ts-time-inp').value.split(':').map(Number);
   timestamps[tsPending]=h*60+m;
   checked[tsPending]=true;
   applyDerivedPace();
+  pushToFirebase();
   closeTsModal();render();
 }
 
 function untickCP(){
   if(tsPending===null)return;
+  if(!isMaster){ closeTsModal(); return; }
   checked[tsPending]=false;timestamps[tsPending]=null;
   applyDerivedPace();
+  pushToFirebase();
   closeTsModal();render();
 }
 
@@ -979,6 +1009,7 @@ function applyPace(){
   startStr=document.getElementById('modal-start').value;
   document.getElementById('start-inp').value=startStr;
   document.getElementById('pace-modal').classList.remove('open');
+  pushToFirebase();
   render();
 }
 
@@ -1001,11 +1032,169 @@ function safeRender(){
     if(errDiv) errDiv.style.display='block', errDiv.textContent='Fout: '+e.message;
   }
 }
+
+// ── Firebase config ────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyC_3Vw0pGu_pkYTRtcuAGWRktaE1TX4kYE",
+  authDomain: "dhm-loop-2026.firebaseapp.com",
+  databaseURL: "https://dhm-loop-2026-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "dhm-loop-2026",
+  storageBucket: "dhm-loop-2026.firebasestorage.app",
+  messagingSenderId: "1022484970557",
+  appId: "1:1022484970557:web:b2de572eca0f1f60263e54"
+};
+
+let db = null;
+let isMaster = false;
+let syncRef = null;
+const CORRECT_PIN = '17844'; // ← verander dit naar jouw gewenste PIN
+let pinBuffer = '';
+
+// ── Firebase init ──────────────────────────────────────────────────────────
+function initFirebase() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    syncRef = db.ref('dhm2026/state');
+
+    // Listen for remote changes
+    syncRef.on('value', snapshot => {
+      const data = snapshot.val();
+      if (!data) return;
+      // Update local state from Firebase (only if we're NOT the master writing)
+      if (!isMaster) {
+        if (data.checked) checked = data.checked;
+        if (data.timestamps) timestamps = data.timestamps;
+        if (data.startStr) { startStr = data.startStr; const inp = document.getElementById('start-inp'); if(inp) inp.value = startStr; }
+        if (data.paceSec) paceSec = data.paceSec;
+        safeRender();
+      }
+      setSyncStatus('online');
+    });
+
+    syncRef.on('disconnect', () => setSyncStatus('offline'));
+    db.ref('.info/connected').on('value', snap => {
+      setSyncStatus(snap.val() ? 'online' : 'offline');
+    });
+
+  } catch(e) {
+    console.error('Firebase init failed:', e);
+    setSyncStatus('error');
+  }
+}
+
+function setSyncStatus(status) {
+  const dot   = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  if (!dot || !label) return;
+  const states = {
+    online:  { color: '#22c55e', text: 'Verbonden · live sync actief' },
+    offline: { color: '#f59e0b', text: 'Geen verbinding · lokale modus' },
+    error:   { color: '#ef4444', text: 'Sync fout' },
+  };
+  const s = states[status] || states.offline;
+  dot.style.background   = s.color;
+  label.textContent      = s.text;
+}
+
+// Push state to Firebase (only master calls this)
+function pushToFirebase() {
+  if (!db || !isMaster) return;
+  syncRef.set({
+    checked:    checked,
+    timestamps: timestamps,
+    startStr:   startStr,
+    paceSec:    paceSec,
+    updatedAt:  Date.now()
+  }).catch(e => console.error('Firebase write failed:', e));
+}
+
+// ── PIN / master mode ──────────────────────────────────────────────────────
+let logoHoldTimer = null;
+
+function initLogoHold() {
+  const logo = document.querySelector('#hdr img');
+  if (!logo) return;
+
+  // Long press: 1.5 seconds
+  logo.addEventListener('touchstart', () => {
+    logoHoldTimer = setTimeout(() => { if(!isMaster) openPinModal(); else deactivateMaster(); }, 1500);
+  }, { passive: true });
+  logo.addEventListener('touchend',   () => clearTimeout(logoHoldTimer));
+  logo.addEventListener('touchmove',  () => clearTimeout(logoHoldTimer));
+
+  // Desktop: long mousedown
+  logo.addEventListener('mousedown', () => {
+    logoHoldTimer = setTimeout(() => { if(!isMaster) openPinModal(); else deactivateMaster(); }, 1500);
+  });
+  logo.addEventListener('mouseup',   () => clearTimeout(logoHoldTimer));
+  logo.addEventListener('mouseleave',() => clearTimeout(logoHoldTimer));
+  logo.style.cursor = 'pointer';
+  logo.title = 'Ingedrukt houden om beheerder te worden';
+}
+
+function openPinModal() {
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pin-error').style.display = 'none';
+  document.getElementById('pin-modal').style.display = 'flex';
+}
+function closePinModal() {
+  document.getElementById('pin-modal').style.display = 'none';
+  pinBuffer = '';
+}
+function pinKey(digit) {
+  if (pinBuffer.length >= 5) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 5) {
+    setTimeout(checkPin, 150);
+  }
+}
+function pinBack()  { pinBuffer = pinBuffer.slice(0,-1); updatePinDots(); }
+function pinClear() { pinBuffer = ''; updatePinDots(); }
+
+function updatePinDots() {
+  document.querySelectorAll('.pin-dot').forEach((dot, i) => {
+    dot.classList.toggle('filled', i < pinBuffer.length);
+  });
+}
+
+function checkPin() {
+  if (pinBuffer === CORRECT_PIN) {
+    isMaster = true;
+    closePinModal();
+    activateMaster();
+  } else {
+    document.getElementById('pin-error').style.display = 'block';
+    pinBuffer = '';
+    updatePinDots();
+  }
+}
+
+function activateMaster() {
+  isMaster = true;
+  document.getElementById('master-badge').style.display = 'inline';
+  document.getElementById('sync-label').textContent = 'Beheerder actief · wijzigingen worden gesynchroniseerd';
+  // Immediately push current state
+  pushToFirebase();
+  safeRender();
+}
+
+function deactivateMaster() {
+  isMaster = false;
+  document.getElementById('master-badge').style.display = 'none';
+  setSyncStatus('online');
+  safeRender();
+}
+
 // Wait for DOM to be fully ready before first render
 function initApp(){
   updateClock();
   safeRender();
   setInterval(()=>{updateClock();safeRender();},15000);
+  initFirebase();
+  initLogoHold();
 }
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',initApp);
@@ -1013,5 +1202,36 @@ if(document.readyState==='loading'){
   initApp();
 }
 </script>
+
+<!-- PIN MODAL -->
+<div id="pin-modal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.65);align-items:center;justify-content:center;" onclick="if(event.target.id==='pin-modal')closePinModal()">
+  <div style="background:var(--surface);border-radius:20px;padding:28px 24px;width:300px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:32px;margin-bottom:8px;">🔐</div>
+      <div style="font-size:16px;font-weight:800;color:var(--text);">Beheerder aanmelden</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px;">Voer de PIN in om checkpoints te kunnen afvinken</div>
+    </div>
+    <div id="pin-dots" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px;">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div id="pin-error" style="display:none;text-align:center;color:#ef4444;font-size:12px;margin-bottom:12px;">Verkeerde PIN, probeer opnieuw</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key pin-clear" onclick="pinClear()">✕</button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key pin-back" onclick="pinBack()">⌫</button>
+    </div>
+    <button onclick="closePinModal()" style="width:100%;margin-top:14px;padding:10px;border:1px solid var(--border);border-radius:var(--rs);background:transparent;color:var(--text2);font-family:-apple-system,sans-serif;font-size:13px;cursor:pointer;">Annuleer</button>
+  </div>
+</div>
+
 </body>
 </html>
