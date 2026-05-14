@@ -504,39 +504,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <script>
 // ── Data ──────────────────────────────────────────────────────────────────
 const CHECKPOINTS = [
-  {nr:1, km:13,    bus:'A',lat:52.853014,lon:4.701141,naam:'Callantsoog',          notitie:'Parkeerplaats'},
-  {nr:2, km:26,    bus:'B',lat:52.754009,lon:4.653103,naam:'Schoorl',              notitie:'Kruispunt'},
-  {nr:3, km:39,    bus:'C',lat:52.666913,lon:4.692223,naam:'Bergen',               notitie:'Parkeerplaats langs weg'},
-  {nr:4, km:52,    bus:'A',lat:52.582575,lon:4.652471,naam:'Castricum',            notitie:'Parkeerplaats'},
-  {nr:5, km:65,    bus:'B',lat:52.497003,lon:4.709452,naam:'Heemskerk',            notitie:'Parkeerplaats'},
-  {nr:6, km:78,    bus:'C',lat:52.507868,lon:4.848067,naam:'Jisp',                 notitie:'Dorpstraat'},
-  {nr:7, km:91,    bus:'A',lat:52.463419,lon:4.950531,naam:'Ilpendam',             notitie:'Dorpstraat'},
-  {nr:8, km:104,   bus:'B',lat:52.436227,lon:5.076917,naam:'Uitdam',               notitie:'Berm langs weg'},
-  {nr:9, km:117,   bus:'C',lat:52.374839,lon:4.962405,naam:'IJburg',               notitie:'Kruispunt'},
-  {nr:10,km:130,   bus:'A',lat:52.329661,lon:5.069083,naam:'Muiden',               notitie:'Herengracht / langs water'},
-  {nr:11,km:143,   bus:'B',lat:52.265244,lon:5.045454,naam:'Nederhorst den Berg',  notitie:'Parkeerplaats'},
-  {nr:12,km:156,   bus:'C',lat:52.183528,lon:5.008056,naam:'Breukelen',            notitie:'Parkeerplaats begraafplaats'},
-  {nr:13,km:169,   bus:'A',lat:52.102121,lon:5.013925,naam:'Leidsche Rijn',        notitie:'P+R'},
-  {nr:14,km:182,   bus:'B',lat:52.015796,lon:5.059563,naam:'IJsselstein',          notitie:'Aldi - sluit om 20:00'},
-  {nr:15,km:195,   bus:'C',lat:51.966585,lon:5.151730,naam:'Everdingen',           notitie:'Parkeerplaats Sportclub Everstein'},
-  {nr:16,km:208,   bus:'A',lat:51.888946,lon:5.113960,naam:'Leerdam',              notitie:'Kruispunt'},
-  {nr:17,km:221,   bus:'B',lat:51.843232,lon:5.153467,naam:'Kruispunt weiland',    notitie:null},
-  {nr:18,km:234,   bus:'C',lat:51.794371,lon:5.267589,naam:'Zaltbommel',           notitie:'Berm langs weg'},
-  {nr:19,km:247,   bus:'A',lat:51.733309,lon:5.316081,naam:'Den Bosch',            notitie:'Parkeerplaats'},
-  {nr:20,km:260,   bus:'B',lat:51.660460,lon:5.437870,naam:'Heeswijk Dinther',     notitie:'Berm langs weg'},
-  {nr:21,km:273,   bus:'C',lat:51.602530,lon:5.595840,naam:'Erp',                  notitie:'Kruispunt'},
-  {nr:22,km:286,   bus:'A',lat:51.541800,lon:5.707690,naam:'De Mortel',            notitie:'Parkeerplaats'},
-  {nr:23,km:299,   bus:'B',lat:51.455450,lon:5.814576,naam:'Deurne',               notitie:'Plus Parkeerplaats'},
-  {nr:24,km:312,   bus:'C',lat:51.359205,lon:5.885336,naam:'Meijel',               notitie:'Berm langs weg'},
-  {nr:25,km:325,   bus:'A',lat:51.294330,lon:5.959530,naam:'Neer',                 notitie:'Rotonde'},
-  {nr:26,km:338,   bus:'B',lat:51.201950,lon:5.950970,naam:'Horn',                 notitie:'Berm langs weg'},
-  {nr:27,km:351,   bus:'C',lat:51.137703,lon:5.973669,naam:'Sint Odilienberg',     notitie:'Berm langs weg'},
-  {nr:28,km:364,   bus:'A',lat:51.081180,lon:5.837180,naam:'Susteren',             notitie:'Berm'},
-  {nr:29,km:377,   bus:'B',lat:51.009053,lon:5.772346,naam:'Urmond',               notitie:'Berm bij kruispunt'},
-  {nr:30,km:390,   bus:'C',lat:50.934516,lon:5.788837,naam:'Beek',                 notitie:'Parkeerplaats langs weg'},
-  {nr:31,km:403,   bus:'A',lat:50.857000,lon:5.813250,naam:'Berg en Terblijt',     notitie:'Parkeerplaats langs weg'},
-  {nr:32,km:416,   bus:'B',lat:50.806582,lon:5.766455,naam:'Eckelrade',            notitie:'Parkeerplaats'},
-  {nr:33,km:423.8, bus:'C',lat:50.831890,lon:5.701440,naam:'Maastricht FINISH',    notitie:'Finish!'}
+  {nr:0, km:0, bus:'A', lat:52.9477129, lon:4.7513586, naam:'Den Helder START', notitie:'Startpunt 🏁', isStart:true},
+  {nr:1, km:13,    bus:'B',lat:52.853014,lon:4.701141,naam:'Callantsoog',          notitie:'Parkeerplaats'},
+  {nr:2, km:26,    bus:'C',lat:52.754009,lon:4.653103,naam:'Schoorl',              notitie:'Kruispunt'},
+  {nr:3, km:39,    bus:'A',lat:52.666913,lon:4.692223,naam:'Bergen',               notitie:'Parkeerplaats langs weg'},
+  {nr:4, km:52,    bus:'B',lat:52.582575,lon:4.652471,naam:'Castricum',            notitie:'Parkeerplaats'},
+  {nr:5, km:65,    bus:'C',lat:52.497003,lon:4.709452,naam:'Heemskerk',            notitie:'Parkeerplaats'},
+  {nr:6, km:78,    bus:'A',lat:52.507868,lon:4.848067,naam:'Jisp',                 notitie:'Dorpstraat'},
+  {nr:7, km:91,    bus:'B',lat:52.463419,lon:4.950531,naam:'Ilpendam',             notitie:'Dorpstraat'},
+  {nr:8, km:104,   bus:'C',lat:52.436227,lon:5.076917,naam:'Uitdam',               notitie:'Berm langs weg'},
+  {nr:9, km:117,   bus:'A',lat:52.374839,lon:4.962405,naam:'IJburg',               notitie:'Kruispunt'},
+  {nr:10,km:130,   bus:'B',lat:52.329661,lon:5.069083,naam:'Muiden',               notitie:'Herengracht / langs water'},
+  {nr:11,km:143,   bus:'C',lat:52.265244,lon:5.045454,naam:'Nederhorst den Berg',  notitie:'Parkeerplaats'},
+  {nr:12,km:156,   bus:'A',lat:52.183528,lon:5.008056,naam:'Breukelen',            notitie:'Parkeerplaats begraafplaats'},
+  {nr:13,km:169,   bus:'B',lat:52.102121,lon:5.013925,naam:'Leidsche Rijn',        notitie:'P+R'},
+  {nr:14,km:182,   bus:'C',lat:52.015796,lon:5.059563,naam:'IJsselstein',          notitie:'Aldi - sluit om 20:00'},
+  {nr:15,km:195,   bus:'A',lat:51.966585,lon:5.151730,naam:'Everdingen',           notitie:'Parkeerplaats Sportclub Everstein'},
+  {nr:16,km:208,   bus:'B',lat:51.888946,lon:5.113960,naam:'Leerdam',              notitie:'Kruispunt'},
+  {nr:17,km:221,   bus:'C',lat:51.843232,lon:5.153467,naam:'Kruispunt weiland',    notitie:null},
+  {nr:18,km:234,   bus:'A',lat:51.794371,lon:5.267589,naam:'Zaltbommel',           notitie:'Berm langs weg'},
+  {nr:19,km:247,   bus:'B',lat:51.733309,lon:5.316081,naam:'Den Bosch',            notitie:'Parkeerplaats'},
+  {nr:20,km:260,   bus:'C',lat:51.660460,lon:5.437870,naam:'Heeswijk Dinther',     notitie:'Berm langs weg'},
+  {nr:21,km:273,   bus:'A',lat:51.602530,lon:5.595840,naam:'Erp',                  notitie:'Kruispunt'},
+  {nr:22,km:286,   bus:'B',lat:51.541800,lon:5.707690,naam:'De Mortel',            notitie:'Parkeerplaats'},
+  {nr:23,km:299,   bus:'C',lat:51.455450,lon:5.814576,naam:'Deurne',               notitie:'Plus Parkeerplaats'},
+  {nr:24,km:312,   bus:'A',lat:51.359205,lon:5.885336,naam:'Meijel',               notitie:'Berm langs weg'},
+  {nr:25,km:325,   bus:'B',lat:51.294330,lon:5.959530,naam:'Neer',                 notitie:'Rotonde'},
+  {nr:26,km:338,   bus:'C',lat:51.201950,lon:5.950970,naam:'Horn',                 notitie:'Berm langs weg'},
+  {nr:27,km:351,   bus:'A',lat:51.137703,lon:5.973669,naam:'Sint Odilienberg',     notitie:'Berm langs weg'},
+  {nr:28,km:364,   bus:'B',lat:51.081180,lon:5.837180,naam:'Susteren',             notitie:'Berm'},
+  {nr:29,km:377,   bus:'C',lat:51.009053,lon:5.772346,naam:'Urmond',               notitie:'Berm bij kruispunt'},
+  {nr:30,km:390,   bus:'A',lat:50.934516,lon:5.788837,naam:'Beek',                 notitie:'Parkeerplaats langs weg'},
+  {nr:31,km:403,   bus:'B',lat:50.857000,lon:5.813250,naam:'Berg en Terblijt',     notitie:'Parkeerplaats langs weg'},
+  {nr:32,km:416,   bus:'C',lat:50.806582,lon:5.766455,naam:'Eckelrade',            notitie:'Parkeerplaats'},
+  {nr:33,km:423.8, bus:'A',lat:50.831890,lon:5.701440,naam:'Maastricht FINISH',    notitie:'Finish!'}
 ];
 const TOTAL_KM=423.8;
 const BUS_COLORS={A:'#f97316',B:'#3b82f6',C:'#22c55e'};
@@ -593,7 +594,7 @@ function countdown(toMin){const d=toMin-nowMin();if(d<=0)return'NU';const h=Math
 function sched(cp){const mins=(cp.km/kmh())*60;return{arrive:addM(startStr,mins),onsite:addM(startStr,mins-15),arriveMin:startMin()+mins,onsiteMin:startMin()+mins-15};}
 function actualKm(){let k=0;for(let i=0;i<CHECKPOINTS.length;i++)if(checked[i])k=CHECKPOINTS[i].km;return Math.max(k,Math.min((nowMin()-startMin())/60*kmh(),TOTAL_KM));}
 function expectedKm(){return Math.min(Math.max(0,nowMin()-startMin())/60*kmh(),TOTAL_KM);}
-function currentCpIdx(){for(let i=0;i<CHECKPOINTS.length;i++)if(!checked[i])return i;return CHECKPOINTS.length-1;}
+function currentCpIdx(){for(let i=0;i<CHECKPOINTS.length;i++)if(!CHECKPOINTS[i].isStart&&!checked[i])return i;return CHECKPOINTS.length-1;}
 function nextCpForBus(bus){for(let i=0;i<CHECKPOINTS.length;i++)if(!checked[i]&&CHECKPOINTS[i].bus===bus)return i;return null;}
 
 // ── Clock ─────────────────────────────────────────────────────────────────
@@ -723,7 +724,8 @@ function renderCpList(containerId){
       badge='<span class="cp-ts-badge">&#9201; '+th+':'+tm+'</span>';
     } else if(isDone){badge='&#10003; afgevinkt';}
     else if(isCurrent){badge='&#8592; huidig';}
-    return '<div class="cp-list-item'+(isDone?' done':'')+(isCurrent?' current':'')+'" onclick="tickCP('+i+')">'+
+    const isStartPt = cp.isStart||false;
+    return '<div class="cp-list-item'+(isDone?' done':'')+(isCurrent?' current':'')+(isStartPt?' start-pt':'')+'" onclick="tickCP('+i+')" style="'+(isStartPt?'opacity:0.6;cursor:default;':'')+'">'+
       '<div class="cp-li-bus" style="background:'+col+';"></div>'+
       '<div class="cp-check">'+(isDone?'&#10003;':'')+'</div>'+
       '<div class="cp-li-info">'+
@@ -867,8 +869,8 @@ function shareWhatsApp(){
 
 // ── Tick / timestamp ──────────────────────────────────────────────────────
 function tickCP(i){
+  if(CHECKPOINTS[i].isStart) return; // startpunt niet afvinken
   if(!isMaster){
-    // Show a brief hint for non-master users
     const bar = document.getElementById('sync-label');
     if(bar){ const old=bar.textContent; bar.textContent='Houd het logo 1,5 sec ingedrukt om beheerder te worden'; setTimeout(()=>bar.textContent=old, 2500); }
     return;
